@@ -4,7 +4,13 @@
 extern crate rocket;
 extern crate rocket_contrib;
 
+#[macro_use]
+extern crate serde_derive;
+
+mod people;
+
 use rocket_contrib::Json;
+use people::People;
 
 #[get("/")]
 fn index() -> Json<Vec<&'static str>> {
@@ -16,6 +22,14 @@ fn index() -> Json<Vec<&'static str>> {
     ])
 }
 
+#[get("/api/v1/people")]
+fn people() -> Json<Vec<People>> {
+    Json(vec![
+        People::new("foo", "bar", "panda.jpg"),
+    ])
+}
+
 fn main() {
-    rocket::ignite().mount("/", routes![index]).launch();
+    let routes = routes![index, people];
+    rocket::ignite().mount("/", routes).launch();
 }
