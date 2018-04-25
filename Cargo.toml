@@ -1,0 +1,9 @@
+[package]
+name = "service-api"
+version = "0.0.1"
+authors = ["cheeleong"]
+
+[dependencies]
+rocket = "0.3.8"
+rocket_codegen = "0.3.8"
+rocket_contrib = "0.3.8"
