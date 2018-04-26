@@ -6,10 +6,17 @@ extern crate rocket_contrib;
 
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_json;
 
+extern crate chrono;
+
+mod events;
 mod people;
 
+use chrono::Utc;
 use rocket_contrib::Json;
+
+use events::Event;
 use people::People;
 
 #[get("/")]
@@ -22,14 +29,18 @@ fn index() -> Json<Vec<&'static str>> {
     ])
 }
 
+#[get("/api/v1/events")]
+fn read_events() -> Json<Vec<Event>> {
+    Json(vec![Event::new("where", "http://pickfire.tk/", Utc::now())])
+}
+
 #[get("/api/v1/people")]
-fn people() -> Json<Vec<People>> {
-    Json(vec![
-        People::new("foo", "bar", "panda.jpg"),
-    ])
+fn read_people() -> Json<Vec<People>> {
+    Json(vec![People::new("foo", "bar", "panda.jpg")])
 }
 
 fn main() {
-    let routes = routes![index, people];
-    rocket::ignite().mount("/", routes).launch();
+    rocket::ignite()
+        .mount("/", routes![index, read_people, read_events])
+        .launch();
 }
