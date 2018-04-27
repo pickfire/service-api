@@ -1,10 +1,9 @@
-image         = "docker.tuxuri.com/engineersmy/service-api"
-date_version 	?= $(shell date +%Y.%m.%d)
+IMAGE   = docker.tuxuri.com/engineersmy/service-api
+BUILDER = docker run --rm -it -v "$$PWD":/home/rust/src ekidd/rust-musl-builder
 
 build-local:
-	alias rust-musl-builder='docker run --rm -it -v "$(pwd)":/home/rust/src ekidd/rust-musl-builder'
-	rust-musl-builder cargo build --release
+	$(BUILDER) cargo build --release
 
 docker:
-	docker build -t ${image}:latest .
-	docker tag ${image}:latest ${image}:${date_version}
+	docker build -t $(IMAGE):latest .
+	docker tag $(IMAGE):latest $(IMAGE):$(shell date +%F)
