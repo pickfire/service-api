@@ -14,9 +14,10 @@ mod events;
 mod people;
 
 use chrono::Utc;
+use rocket::{http::Status, response::Failure};
 use rocket_contrib::Json;
 
-use events::Event;
+use events::{Event, NewEvent};
 use people::People;
 
 #[get("/")]
@@ -29,18 +30,47 @@ fn index() -> Json<Vec<&'static str>> {
     ])
 }
 
-#[get("/api/v1/events")]
+#[get("/")]
 fn read_events() -> Json<Vec<Event>> {
-    Json(vec![Event::new("where", "http://pickfire.tk/", Utc::now())])
+    Json(vec![Event{
+        id: 1,
+        name: String::from("where"),
+        url: String::from("http://pickfire.tk/"),
+        is_published: false,
+        create_at: Utc::now(),
+        update_at: Utc::now(),
+        start_at: Utc::now(),
+    }])
+}
+
+#[post("/", format = "application/json", data = "<event>")]
+fn create_event(event: Json<NewEvent>) -> Failure {
+    Failure(Status::NotImplemented)
+}
+
+#[put("/<id>", format = "application/json", data = "<event>")]
+fn update_event(id: u64, event: Json<NewEvent>) -> Failure {
+    Failure(Status::NotImplemented)
+}
+
+#[delete("/<id>")]
+fn delete_event(id: u64) -> Failure {
+    Failure(Status::NotImplemented)
 }
 
 #[get("/api/v1/people")]
 fn read_people() -> Json<Vec<People>> {
-    Json(vec![People::new("foo", "bar", "panda.jpg")])
+    Json(vec![People {
+        name: String::from("foo"),
+        about: String::from("bar"),
+        profile: String::from("panda.jpg"),
+    }])
 }
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, read_people, read_events])
+        .mount("/", routes![index])
+        .mount("/api/v1/people", routes![read_people])
+        .mount("/api/v1/events", routes![read_events, create_event, update_event, delete_event])
         .launch();
 }
