@@ -61,6 +61,7 @@ fn delete_event(id: u64) -> Failure {
 #[get("/api/v1/people")]
 fn read_people() -> Json<Vec<People>> {
     Json(vec![People {
+        id: 1,
         name: String::from("foo"),
         about: String::from("bar"),
         profile: String::from("panda.jpg"),
