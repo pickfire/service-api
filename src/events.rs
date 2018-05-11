@@ -2,7 +2,7 @@ use chrono::{serde::ts_seconds, DateTime, Utc};
 
 #[derive(Serialize)]
 pub struct Event {
-    pub id: u64,
+    pub id: i32,
     pub name: String,
     pub url: String,
     pub is_published: bool,
