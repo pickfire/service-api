@@ -8,11 +8,11 @@ pub struct Event {
     pub is_published: bool,
 
     #[serde(with = "ts_seconds")]
-    pub create_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     #[serde(with = "ts_seconds")]
-    pub update_at: DateTime<Utc>, // TODO: Option
+    pub updated_at: DateTime<Utc>, // TODO: Option
     #[serde(with = "ts_seconds")]
-    pub start_at: DateTime<Utc>,
+    pub started_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize)]
@@ -22,7 +22,7 @@ pub struct NewEvent {
     pub is_published: bool,
 
     #[serde(with = "ts_seconds")]
-    pub create_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     #[serde(with = "ts_seconds")]
-    pub start_at: DateTime<Utc>,
+    pub started_at: DateTime<Utc>,
 }

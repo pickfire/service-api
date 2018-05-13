@@ -41,9 +41,9 @@ fn read_events() -> Json<Vec<Event>> {
         name: String::from("where"),
         url: String::from("http://pickfire.tk/"),
         is_published: false,
-        create_at: Utc::now(),
-        update_at: Utc::now(),
-        start_at: Utc::now(),
+        created_at: Utc::now(),
+        updated_at: Utc::now(),
+        started_at: Utc::now(),
     }])
 }
 
