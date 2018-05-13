@@ -77,6 +77,7 @@ fn read_people() -> Json<Vec<User>> {
         name: String::from("foo"),
         about: String::from("bar"),
         profile: String::from("panda.jpg"),
+        created_at: Utc::now(),
     }])
 }
 
