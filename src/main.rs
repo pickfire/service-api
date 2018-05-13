@@ -10,19 +10,19 @@ extern crate serde_json;
 
 extern crate chrono;
 
-mod events;
-mod meetups;
-mod people;
-mod videos;
+mod event;
+mod meetup;
+mod user;
+mod video;
 
 use chrono::Utc;
 use rocket::{http::Status, response::Failure};
 use rocket_contrib::Json;
 
-use events::{Event, NewEvent};
-use meetups::Meetup;
-use people::People;
-use videos::Video;
+use event::{Event, NewEvent};
+use meetup::Meetup;
+use user::User;
+use video::Video;
 
 #[get("/")]
 fn index() -> Json<Vec<&'static str>> {
@@ -71,8 +71,8 @@ fn read_meetups() -> Json<Vec<Meetup>> {
 }
 
 #[get("/")]
-fn read_people() -> Json<Vec<People>> {
-    Json(vec![People {
+fn read_people() -> Json<Vec<User>> {
+    Json(vec![User {
         id: 1,
         name: String::from("foo"),
         about: String::from("bar"),
