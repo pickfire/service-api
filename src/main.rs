@@ -1,32 +1,34 @@
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
+extern crate actix;
+extern crate actix_web;
 
-extern crate rocket;
-extern crate rocket_contrib;
+extern crate env_logger;
+#[macro_use]
+extern crate log;
 
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
 extern crate serde_json;
 
+extern crate r2d2;
+extern crate r2d2_sqlite;
+extern crate r2d2_postgres;
+
 extern crate chrono;
+extern crate listenfd;
 
 mod event;
 mod meetup;
 mod user;
 mod video;
 
-use chrono::Utc;
-use rocket::{http::Status, response::Failure};
-use rocket_contrib::Json;
+use actix_web::{App, HttpRequest, HttpResponse, Json, http::Method, middleware, server};
+use listenfd::ListenFd;
+use r2d2_sqlite::SqliteConnectionManager;
+use r2d2_postgres::PostgresConnectionManager;
 
-use event::{Event, NewEvent};
-use meetup::Meetup;
-use user::User;
-use video::Video;
-
-#[get("/")]
-fn index() -> Json<Vec<&'static str>> {
-    Json(vec![
+fn index(_req: HttpRequest) -> Json<[&'static str; 4]>{
+    Json([
         "/api/v1/events",
         "/api/v1/meetups",
         "/api/v1/videos",
@@ -34,72 +36,46 @@ fn index() -> Json<Vec<&'static str>> {
     ])
 }
 
-#[get("/")]
-fn read_events() -> Json<Vec<Event>> {
-    Json(vec![Event {
-        id: 1,
-        name: String::from("where"),
-        url: String::from("http://pickfire.tk/"),
-        is_published: false,
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-        started_at: Utc::now(),
-    }])
-}
-
-#[post("/", format = "application/json", data = "<event>")]
-fn create_event(event: Json<NewEvent>) -> Failure {
-    Failure(Status::NotImplemented)
-}
-
-#[put("/<id>", format = "application/json", data = "<event>")]
-fn update_event(id: u64, event: Json<NewEvent>) -> Failure {
-    Failure(Status::NotImplemented)
-}
-
-#[delete("/<id>")]
-fn delete_event(id: u64) -> Failure {
-    Failure(Status::NotImplemented)
-}
-
-#[get("/")]
-fn read_meetups() -> Json<Vec<Meetup>> {
-    Json(vec![Meetup {
-        event: 1,
-        organizer: vec![1],
-    }])
-}
-
-#[get("/")]
-fn read_people() -> Json<Vec<User>> {
-    Json(vec![User {
-        id: 1,
-        name: String::from("foo"),
-        about: String::from("bar"),
-        profile: String::from("panda.jpg"),
-        created_at: Utc::now(),
-    }])
-}
-
-#[get("/")]
-fn read_videos() -> Json<Vec<Video>> {
-    Json(vec![Video {
-        meetup: 1,
-        topic: String::from("Hello world to Rust!"),
-        speaker: vec![1],
-        create_at: Utc::now(),
-    }])
-}
-
 fn main() {
-    rocket::ignite()
-        .mount("/", routes![index])
-        .mount(
-            "/api/v1/events",
-            routes![read_events, create_event, update_event, delete_event],
-        )
-        .mount("/api/v1/meetups", routes![read_meetups])
-        .mount("/api/v1/people", routes![read_people])
-        .mount("/api/v1/videos", routes![read_videos])
-        .launch();
+    ::std::env::set_var("RUST_LOG", "service_api,actix_web=info");
+    ::std::env::set_var("RUST_BACKTRACE", "1");
+    env_logger::init();
+
+    // r2d2 pool
+    let manager = if let Ok(url) = ::std::env::var("DATABASE_URL") {
+        if url.starts_with("sqlite:") {
+            SqliteConnectionManager::file(&url)
+        } else {
+            unimplemented!("Unsupported database URL: {}", url);
+        }
+    } else {
+        panic!("DATABASE_URL is not defined");
+    };
+    let _pool = r2d2::Pool::new(manager).unwrap();
+
+    let mut listenfd = ListenFd::from_env();
+    let mut server = server::new(move || {
+        App::new()
+            .middleware(middleware::Logger::default())
+            .route("/", Method::GET, index)
+            .resource("/api/v1/events", |r| {
+                r.method(Method::GET).with(event::all);
+                r.method(Method::POST).with(event::create)
+            })
+            .resource("/api/v1/events/{id}", |r| {
+                r.method(Method::PUT).with(event::update);
+                r.method(Method::DELETE).with(event::delete)
+            })
+            .resource("/api/v1/meetups", |r| r.f(|_| HttpResponse::NotImplemented()))
+            .resource("/api/v1/videos", |r| r.f(|_| HttpResponse::NotImplemented()))
+            .resource("/api/v1/people", |r| r.f(|_| HttpResponse::NotImplemented()))
+    });
+
+    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+        server.listen(l)
+    } else {
+        server.bind("127.0.0.1:3000").unwrap()
+    };
+
+    server.run();
 }

@@ -2,7 +2,15 @@
 
 Service API for Website
 
-Powered by Rocket.
+Powered by actix-web.
+
+## Develop
+
+```bash
+$ cargo install systemfd
+$ cargo watch -i .trigger -x build -s 'touch .trigger' &
+$ systemfd --no-pid -s http::3000 -- cargo watch -w .trigger -x run
+```
 
 ## Install
 
@@ -10,19 +18,9 @@ Powered by Rocket.
 $ curl https://sh.rustup.rs -sSf | sh
 ```
 
-## Setup
-
-```bash
-$ rustup default nightly
-
-$ rustup override set nightly
-
-$ rustup update && cargo update
-```
-
 ## Rust Multi-stage build
 
-The dockerized image is only `13MB` in size:
+The dockerized image is only `xxMB` in size:
 
 ```bash
 # Build the docker image
